@@ -1,16 +1,9 @@
-'use client'
-
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { createClient } from '@/lib/supabase-server'
 
-export default function Nav() {
-  const pathname = usePathname()
-
-  const navItems = [
-    { href: '/', label: '首页' },
-    { href: '/projects', label: '项目' },
-    { href: '/notes', label: '笔记' },
-  ]
+export default async function Nav() {
+  const supabase = createClient()
+  const { data: { user } } = await supabase.auth.getUser()
 
   return (
     <nav className='border-b'>
@@ -18,27 +11,25 @@ export default function Nav() {
         <Link href='/' className='font-bold text-xl'>
           Zane's Site
         </Link>
-        <div className='flex gap-6'>
-          {navItems.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={`text-sm transition-colors ${
-                pathname === item.href
-                  ? 'text-foreground font-medium'
-                  : 'text-muted-foreground hover:text-foreground'
-              }`}
-            >
-              {item.label}
-            </Link>
-          ))}
-          <Link
-            href='/login'
-            className='text-sm text-muted-foreground hover:text-foreground'
-          >
+        <div className='flex items-center gap-6'>
+          <Link href='/' className='text-sm text-muted-foreground hover:text-foreground transition-colors'>
+          首页
+        </Link>
+        <Link href='/projects' className='text-sm text-muted-foreground hover:text-foreground transition-colors'>
+          项目
+        </Link>
+        <Link href='/notes' className='text-sm text-muted-foreground hover:text-foreground transition-colors'>
+          笔记
+        </Link>
+        {user ? (
+          <Link href='/admin' className='text-sm text-primary hover:underline font-medium'>
+            管理后台
+          </Link>
+        ) : (
+          <Link href='/login' className='text-sm text-muted-foreground hover:text-foreground transition-colors'>
             登录
           </Link>
-        </div>
+        )}
       </div>
     </nav>
   )

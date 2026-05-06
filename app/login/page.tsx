@@ -1,20 +1,19 @@
 'use client'
 
+import { login } from '@/app/auth/actions'
 import { useState } from 'react'
 
-export default function Login() {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
+export default function Login({
+  searchParams,
+}: {
+  searchParams: { message?: string }
+}) {
   const [loading, setLoading] = useState(false)
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault()
+  async function handleSubmit(formData: FormData) {
     setLoading(true)
-    
-    // TODO: 集成Supabase认证
-    console.log('登录:', { email, password })
-    
-    setTimeout(() => setLoading(false), 1000)
+    await login(formData)
+    setLoading(false)
   }
 
   return (
@@ -22,15 +21,20 @@ export default function Login() {
       <div className='border rounded-lg p-8'>
         <h1 className='text-2xl font-bold mb-6 text-center'>管理员登录</h1>
         
-        <form onSubmit={handleLogin} className='space-y-4'>
+        {searchParams.message && (
+          <div className='bg-red-50 text-red-600 p-3 rounded mb-4 text-sm'>
+            {searchParams.message}
+          </div>
+        )}
+        
+        <form action={handleSubmit} className='space-y-4'>
           <div>
             <label className='block text-sm font-medium mb-2'>
               邮箱
             </label>
             <input
               type='email'
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              name='email'
               className='w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary'
               placeholder='your@email.com'
               required
@@ -43,8 +47,7 @@ export default function Login() {
             </label>
             <input
               type='password'
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              name='password'
               className='w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary'
               placeholder='••••••••'
               required
