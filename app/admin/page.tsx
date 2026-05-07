@@ -13,6 +13,8 @@ export default async function Admin() {
     redirect('/login')
   }
 
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://your-site.vercel.app'
+
   return (
     <div className='space-y-8'>
       <div className='flex justify-between items-center'>
@@ -30,6 +32,46 @@ export default async function Admin() {
             退出登录
           </button>
         </form>
+      </div>
+
+      <div className='border rounded-lg p-6 bg-muted/30'>
+        <h2 className='text-xl font-semibold mb-3'>🔗 分享链接</h2>
+        <p className='text-muted-foreground mb-4'>
+          分享以下链接给访客，他们只能查看你设置为公开的内容
+        </p>
+        <div className='grid md:grid-cols-2 gap-4'>
+          <div className='bg-background p-4 rounded-lg'>
+            <p className='text-sm font-medium mb-2'>项目展示页</p>
+            <div className='flex items-center gap-2'>
+              <code className='flex-1 text-xs bg-muted px-3 py-2 rounded truncate'>
+                {siteUrl}/projects
+              </code>
+              <button
+                onClick={() => navigator.clipboard.writeText(`${siteUrl}/projects`)}
+                className='px-3 py-2 bg-primary text-primary-foreground rounded text-sm hover:opacity-90'
+              >
+                复制
+              </button>
+            </div>
+          </div>
+          <div className='bg-background p-4 rounded-lg'>
+            <p className='text-sm font-medium mb-2'>笔记知识库</p>
+            <div className='flex items-center gap-2'>
+              <code className='flex-1 text-xs bg-muted px-3 py-2 rounded truncate'>
+                {siteUrl}/notes
+              </code>
+              <button
+                onClick={() => navigator.clipboard.writeText(`${siteUrl}/notes`)}
+                className='px-3 py-2 bg-primary text-primary-foreground rounded text-sm hover:opacity-90'
+              >
+                复制
+              </button>
+            </div>
+          </div>
+        </div>
+        <p className='text-xs text-muted-foreground mt-4'>
+          💡 提示：在项目管理或笔记管理中，可以为单个项目/笔记复制分享链接
+        </p>
       </div>
 
       <div className='grid md:grid-cols-2 gap-6'>
