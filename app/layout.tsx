@@ -37,13 +37,13 @@ export default function RootLayout({
 }) {
   return (
     <html lang='zh-CN' suppressHydrationWarning>
-      <body className='min-h-screen bg-white text-gray-900 dark:bg-gray-900 dark:text-gray-100 transition-colors'>
+      <body className='min-h-screen'>
         <ThemeProvider>
           <Nav />
           <main className='max-w-4xl mx-auto px-4 py-8'>
             {children}
           </main>
-          <footer className='border-t mt-16 dark:border-gray-800'>
+          <footer className='border-t mt-16'>
             <div className='max-w-4xl mx-auto px-4 py-6 text-center text-sm text-muted-foreground'>
               © {new Date().getFullYear()} Zane. All rights reserved.
             </div>
