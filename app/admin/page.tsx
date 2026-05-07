@@ -32,11 +32,6 @@ export default function Admin() {
     setStats({ projects: p.count || 0, notes: n.count || 0 })
   }
 
-  async function handleLogout() {
-    await supabase.auth.signOut()
-    router.replace('/login')
-  }
-
   async function handleCopy(key: string, text: string) {
     await navigator.clipboard.writeText(text)
     setCopied({ ...copied, [key]: true })
@@ -49,20 +44,17 @@ export default function Admin() {
 
   return (
     <div className='space-y-8'>
-      <div className='flex justify-between items-center'>
-        <div>
-          <h1 className='text-3xl font-bold'>管理后台</h1>
-          <p className='text-muted-foreground mt-1'>欢迎，{user?.email}</p>
-        </div>
-        <button onClick={handleLogout} className='px-4 py-2 border rounded-md hover:bg-gray-100'>退出登录</button>
+      <div>
+        <h1 className='text-3xl font-bold'>管理后台</h1>
+        <p className='text-muted-foreground mt-1'>在这里管理你的项目和笔记</p>
       </div>
 
       <div className='grid md:grid-cols-2 gap-4'>
-        <Link href='/admin/projects' className='border rounded-lg p-6 hover:shadow-md'>
+        <Link href='/admin/projects' className='border rounded-lg p-6 hover:shadow-md transition-shadow'>
           <h2 className='text-xl font-semibold'>📂 项目管理</h2>
           <p className='text-muted-foreground mt-1'>共 {stats.projects} 个项目</p>
         </Link>
-        <Link href='/admin/notes' className='border rounded-lg p-6 hover:shadow-md'>
+        <Link href='/admin/notes' className='border rounded-lg p-6 hover:shadow-md transition-shadow'>
           <h2 className='text-xl font-semibold'>📝 笔记管理</h2>
           <p className='text-muted-foreground mt-1'>共 {stats.notes} 篇笔记</p>
         </Link>
@@ -75,7 +67,7 @@ export default function Admin() {
             <code className='bg-gray-100 px-3 py-1 rounded flex-1'>{siteUrl}/projects</code>
             <button 
               onClick={() => handleCopy('projects', `${siteUrl}/projects`)} 
-              className={`px-3 py-1 border rounded ${copied['projects'] ? 'bg-green-100 text-green-700 border-green-300' : 'hover:bg-gray-100'}`}
+              className={`px-3 py-1 border rounded transition-colors ${copied['projects'] ? 'bg-green-100 text-green-700 border-green-300' : 'hover:bg-gray-100'}`}
             >
               {copied['projects'] ? '已复制' : '复制'}
             </button>
@@ -84,7 +76,7 @@ export default function Admin() {
             <code className='bg-gray-100 px-3 py-1 rounded flex-1'>{siteUrl}/notes</code>
             <button 
               onClick={() => handleCopy('notes', `${siteUrl}/notes`)} 
-              className={`px-3 py-1 border rounded ${copied['notes'] ? 'bg-green-100 text-green-700 border-green-300' : 'hover:bg-gray-100'}`}
+              className={`px-3 py-1 border rounded transition-colors ${copied['notes'] ? 'bg-green-100 text-green-700 border-green-300' : 'hover:bg-gray-100'}`}
             >
               {copied['notes'] ? '已复制' : '复制'}
             </button>
