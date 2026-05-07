@@ -3,7 +3,7 @@ import { logout } from '@/app/auth/actions'
 import { redirect } from 'next/navigation'
 
 export default async function Admin() {
-  const supabase = createClient()
+  const supabase = await createClient()
 
   const {
     data: { user },

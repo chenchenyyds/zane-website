@@ -2,7 +2,7 @@ import { createClient } from '@/lib/supabase-server'
 import ReactMarkdown from 'react-markdown'
 
 export default async function NoteDetail({ params }: { params: { id: string } }) {
-  const supabase = createClient()
+  const supabase = await createClient()
   
   const { data: note } = await supabase
     .from('notes')

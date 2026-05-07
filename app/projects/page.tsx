@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase-server'
 
 export default async function Projects() {
-  const supabase = createClient()
+  const supabase = await createClient()
   
   const { data: projects } = await supabase
     .from('projects')
