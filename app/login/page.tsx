@@ -2,21 +2,35 @@
 
 import { supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 export default function Login() {
   const router = useRouter()
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+
+  // 检查是否已登录
+  useEffect(() => {
+    checkUser()
+  }, [])
+
+  async function checkUser() {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (user) {
+      router.push('/admin')
+    } else {
+      setLoading(false)
+    }
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setLoading(true)
     setError('')
 
-    const { error: authError } = await supabase.auth.signInWithPassword({
+    const { data, error: authError } = await supabase.auth.signInWithPassword({
       email,
       password,
     })
@@ -24,10 +38,18 @@ export default function Login() {
     if (authError) {
       setError(authError.message)
       setLoading(false)
-    } else {
-      router.push('/admin')
-      router.refresh()
+    } else if (data.user) {
+      // 登录成功，跳转到 admin
+      window.location.href = '/admin'
     }
+  }
+
+  if (loading) {
+    return (
+      <div className="max-w-md mx-auto mt-16 text-center">
+        <p>加载中...</p>
+      </div>
+    )
   }
 
   return (
@@ -51,7 +73,6 @@ export default function Login() {
               className='w-full px-3 py-2 border rounded-md'
               placeholder='your@email.com'
               required
-              disabled={loading}
             />
           </div>
           
@@ -64,16 +85,15 @@ export default function Login() {
               className='w-full px-3 py-2 border rounded-md'
               placeholder='••••••••'
               required
-              disabled={loading}
             />
           </div>
           
           <button
             type='submit'
             disabled={loading}
-            className='w-full bg-black text-white py-3 rounded-md font-medium disabled:opacity-50'
+            className='w-full bg-black text-white py-3 rounded-md font-medium'
           >
-            {loading ? '登录中...' : '登录'}
+            登录
           </button>
         </form>
       </div>
