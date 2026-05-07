@@ -1,3 +1,7 @@
+'use client'
+
+import Link from 'next/link'
+
 export default function Home() {
   return (
     <div className='space-y-12'>
@@ -9,31 +13,14 @@ export default function Home() {
       </section>
 
       <section className='grid md:grid-cols-2 gap-8'>
-        <div className='border rounded-lg p-6 hover:shadow-md transition-shadow'>
-          <h2 className='text-xl font-semibold mb-3'>项目展示</h2>
-          <p className='text-muted-foreground mb-4'>
-            查看我的开源项目和作品
-          </p>
-          <a
-            href='/projects'
-            className='text-primary hover:underline font-medium'
-          >
-            浏览项目 →
-          </a>
-        </div>
-
-        <div className='border rounded-lg p-6 hover:shadow-md transition-shadow'>
-          <h2 className='text-xl font-semibold mb-3'>知识库</h2>
-          <p className='text-muted-foreground mb-4'>
-            技术笔记和学习记录
-          </p>
-          <a
-            href='/notes'
-            className='text-primary hover:underline font-medium'
-          >
-            浏览笔记 →
-          </a>
-        </div>
+        <Link href='/projects' className='border rounded-lg p-6 hover:shadow-md transition-shadow'>
+          <h2 className='text-xl font-semibold mb-3'>📂 项目展示</h2>
+          <p className='text-muted-foreground'>查看我的开源项目和作品</p>
+        </Link>
+        <Link href='/notes' className='border rounded-lg p-6 hover:shadow-md transition-shadow'>
+          <h2 className='text-xl font-semibold mb-3'>📝 知识库</h2>
+          <p className='text-muted-foreground'>技术笔记和学习记录</p>
+        </Link>
       </section>
     </div>
   )

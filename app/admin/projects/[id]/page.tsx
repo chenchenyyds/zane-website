@@ -1,216 +1,80 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import { useRouter, useParams } from 'next/navigation'
+import { supabase } from '@/lib/supabase'
 
-interface Project {
-  id: string
-  name: string
-  description: string
-  git_url: string
-  live_url: string
-  tech_stack: string[]
-  is_public: boolean
-}
-
-export default function EditProject({ params }: { params: { id: string } }) {
+export default function EditProject() {
   const router = useRouter()
-  const [project, setProject] = useState<Project | null>(null)
-  const [name, setName] = useState('')
-  const [description, setDescription] = useState('')
-  const [gitUrl, setGitUrl] = useState('')
-  const [liveUrl, setLiveUrl] = useState('')
-  const [techStack, setTechStack] = useState('')
-  const [isPublic, setIsPublic] = useState(false)
+  const params = useParams()
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
-  const [deleting, setDeleting] = useState(false)
+  const [form, setForm] = useState({ name: '', description: '', git_url: '', live_url: '', tech_stack: '', is_public: true })
 
   useEffect(() => {
-    fetchProject()
-  }, [params.id])
+    supabase.auth.getUser().then(({ data }) => {
+      if (!data.user) router.replace('/login')
+      else fetchProject()
+    })
+  }, [params.id, router])
 
-  const fetchProject = async () => {
-    const res = await fetch(`/api/projects/${params.id}`)
-    if (res.ok) {
-      const data = await res.json()
-      setProject(data)
-      setName(data.name || '')
-      setDescription(data.description || '')
-      setGitUrl(data.git_url || '')
-      setLiveUrl(data.live_url || '')
-      setTechStack((data.tech_stack || []).join(', '))
-      setIsPublic(data.is_public || false)
-    }
+  async function fetchProject() {
+    const { data } = await supabase.from('projects').select('*').eq('id', params.id).single()
+    if (data) setForm({ ...data, tech_stack: data.tech_stack?.join(', ') || '' })
     setLoading(false)
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setSaving(true)
-    
-    const res = await fetch(`/api/projects/${params.id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        name,
-        description,
-        git_url: gitUrl,
-        live_url: liveUrl,
-        tech_stack: techStack.split(',').map(s => s.trim()).filter(Boolean),
-        is_public: isPublic,
-      }),
-    })
-    
-    if (res.ok) {
-      router.push('/admin/projects')
-    }
-    setSaving(false)
+    const { error } = await supabase.from('projects').update({
+      name: form.name, description: form.description, git_url: form.git_url || null,
+      live_url: form.live_url || null, tech_stack: form.tech_stack.split(',').map(t => t.trim()).filter(Boolean),
+      is_public: form.is_public,
+    }).eq('id', params.id)
+    if (error) { alert('保存失败：' + error.message); setSaving(false) }
+    else router.push('/admin/projects')
   }
 
-  const handleDelete = async () => {
-    if (!confirm('确定要删除这个项目吗？')) return
-    setDeleting(true)
-    
-    const res = await fetch(`/api/projects/${params.id}`, {
-      method: 'DELETE',
-    })
-    
-    if (res.ok) {
-      router.push('/admin/projects')
-    }
-    setDeleting(false)
+  async function handleDelete() {
+    if (!confirm('确定删除？')) return
+    await supabase.from('projects').delete().eq('id', params.id)
+    router.push('/admin/projects')
   }
 
-  const copyShareLink = () => {
-    const siteUrl = window.location.origin
-    navigator.clipboard.writeText(`${siteUrl}/projects`)
-    alert('分享链接已复制！')
-  }
-
-  if (loading) {
-    return <div className='text-center py-12'>加载中...</div>
-  }
-
-  if (!project) {
-    return <div className='text-center py-12'>项目不存在</div>
-  }
+  if (loading) return <div className='text-center py-20'>加载中...</div>
 
   return (
-    <div className='space-y-6'>
-      <div className='flex justify-between items-center'>
-        <h1 className='text-2xl font-bold'>编辑项目</h1>
-        <div className='flex gap-2'>
-          {project.is_public && (
-            <button
-              onClick={copyShareLink}
-              className='px-4 py-2 border rounded-md hover:bg-muted transition-colors'
-            >
-              复制分享链接
-            </button>
-          )}
-          <Link
-            href='/admin/projects'
-            className='px-4 py-2 border rounded-md hover:bg-muted transition-colors'
-          >
-            返回
-          </Link>
+    <div className='max-w-xl'>
+      <Link href='/admin/projects' className='text-sm text-muted-foreground hover:underline mb-4 inline-block'>← 返回</Link>
+      <h1 className='text-2xl font-bold mb-6'>编辑项目</h1>
+      <form onSubmit={handleSubmit} className='space-y-4'>
+        <div><label className='block text-sm mb-1'>项目名称 *</label>
+          <input type='text' value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className='w-full px-3 py-2 border rounded-md' required />
         </div>
-      </div>
-
-      <form onSubmit={handleSubmit} className='space-y-6'>
-        <div className='border rounded-lg p-6 space-y-4'>
-          <div>
-            <label className='block text-sm font-medium mb-2'>项目名称 *</label>
-            <input
-              type='text'
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              required
-              className='w-full px-3 py-2 border rounded-md'
-              placeholder='输入项目名称'
-            />
+        <div><label className='block text-sm mb-1'>项目描述</label>
+          <textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className='w-full px-3 py-2 border rounded-md' rows={3} />
+        </div>
+        <div className='grid grid-cols-2 gap-4'>
+          <div><label className='block text-sm mb-1'>GitHub</label>
+            <input type='url' value={form.git_url} onChange={(e) => setForm({ ...form, git_url: e.target.value })} className='w-full px-3 py-2 border rounded-md' />
           </div>
-
-          <div>
-            <label className='block text-sm font-medium mb-2'>项目描述</label>
-            <textarea
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              rows={4}
-              className='w-full px-3 py-2 border rounded-md'
-              placeholder='简单描述一下这个项目'
-            />
-          </div>
-
-          <div className='grid md:grid-cols-2 gap-4'>
-            <div>
-              <label className='block text-sm font-medium mb-2'>GitHub 地址</label>
-              <input
-                type='url'
-                value={gitUrl}
-                onChange={(e) => setGitUrl(e.target.value)}
-                className='w-full px-3 py-2 border rounded-md'
-                placeholder='https://github.com/username/repo'
-              />
-            </div>
-            <div>
-              <label className='block text-sm font-medium mb-2'>在线地址</label>
-              <input
-                type='url'
-                value={liveUrl}
-                onChange={(e) => setLiveUrl(e.target.value)}
-                className='w-full px-3 py-2 border rounded-md'
-                placeholder='https://your-project.vercel.app'
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className='block text-sm font-medium mb-2'>技术栈</label>
-            <input
-              type='text'
-              value={techStack}
-              onChange={(e) => setTechStack(e.target.value)}
-              className='w-full px-3 py-2 border rounded-md'
-              placeholder='React, TypeScript, Node.js（用逗号分隔）'
-            />
-            <p className='text-xs text-muted-foreground mt-1'>
-              多个技术栈用逗号分隔
-            </p>
-          </div>
-
-          <div className='flex items-center gap-3'>
-            <input
-              type='checkbox'
-              id='is_public'
-              checked={isPublic}
-              onChange={(e) => setIsPublic(e.target.checked)}
-              className='w-4 h-4'
-            />
-            <label htmlFor='is_public' className='text-sm font-medium'>
-              公开分享（取消勾选则仅自己可见）
-            </label>
+          <div><label className='block text-sm mb-1'>在线地址</label>
+            <input type='url' value={form.live_url} onChange={(e) => setForm({ ...form, live_url: e.target.value })} className='w-full px-3 py-2 border rounded-md' />
           </div>
         </div>
-
-        <div className='flex gap-4'>
-          <button
-            type='submit'
-            disabled={saving}
-            className='px-6 py-2 bg-primary text-primary-foreground rounded-md hover:opacity-90 disabled:opacity-50'
-          >
-            {saving ? '保存中...' : '保存修改'}
-          </button>
-          <button
-            type='button'
-            onClick={handleDelete}
-            disabled={deleting}
-            className='px-6 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 disabled:opacity-50'
-          >
-            {deleting ? '删除中...' : '删除项目'}
-          </button>
+        <div><label className='block text-sm mb-1'>技术栈</label>
+          <input type='text' value={form.tech_stack} onChange={(e) => setForm({ ...form, tech_stack: e.target.value })} className='w-full px-3 py-2 border rounded-md' placeholder='逗号分隔' />
+        </div>
+        <div className='flex items-center gap-2'>
+          <input type='checkbox' id='is_public' checked={form.is_public} onChange={(e) => setForm({ ...form, is_public: e.target.checked })} className='w-4 h-4' />
+          <label htmlFor='is_public' className='text-sm'>公开</label>
+        </div>
+        <div className='flex gap-3 pt-4'>
+          <button type='submit' disabled={saving} className='px-6 py-2 bg-black text-white rounded-md disabled:opacity-50'>{saving ? '保存中...' : '保存'}</button>
+          <button type='button' onClick={handleDelete} className='px-6 py-2 bg-red-500 text-white rounded-md'>删除</button>
+          <Link href='/admin/projects' className='px-6 py-2 border rounded-md'>取消</Link>
         </div>
       </form>
     </div>
