@@ -10,6 +10,7 @@ export default function Admin() {
   const [user, setUser] = useState<any>(null)
   const [stats, setStats] = useState({ projects: 0, notes: 0 })
   const [ready, setReady] = useState(false)
+  const [copied, setCopied] = useState<{ [key: string]: boolean }>({})
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
@@ -34,6 +35,12 @@ export default function Admin() {
   async function handleLogout() {
     await supabase.auth.signOut()
     router.replace('/login')
+  }
+
+  async function handleCopy(key: string, text: string) {
+    await navigator.clipboard.writeText(text)
+    setCopied({ ...copied, [key]: true })
+    setTimeout(() => setCopied({ ...copied, [key]: false }), 2000)
   }
 
   if (!ready) return <div className='text-center py-20'>加载中...</div>
@@ -66,11 +73,21 @@ export default function Admin() {
         <div className='space-y-2 text-sm'>
           <div className='flex gap-2'>
             <code className='bg-gray-100 px-3 py-1 rounded flex-1'>{siteUrl}/projects</code>
-            <button onClick={() => navigator.clipboard.writeText(`${siteUrl}/projects`)} className='px-3 py-1 border rounded'>复制</button>
+            <button 
+              onClick={() => handleCopy('projects', `${siteUrl}/projects`)} 
+              className={`px-3 py-1 border rounded ${copied['projects'] ? 'bg-green-100 text-green-700 border-green-300' : 'hover:bg-gray-100'}`}
+            >
+              {copied['projects'] ? '已复制' : '复制'}
+            </button>
           </div>
           <div className='flex gap-2'>
             <code className='bg-gray-100 px-3 py-1 rounded flex-1'>{siteUrl}/notes</code>
-            <button onClick={() => navigator.clipboard.writeText(`${siteUrl}/notes`)} className='px-3 py-1 border rounded'>复制</button>
+            <button 
+              onClick={() => handleCopy('notes', `${siteUrl}/notes`)} 
+              className={`px-3 py-1 border rounded ${copied['notes'] ? 'bg-green-100 text-green-700 border-green-300' : 'hover:bg-gray-100'}`}
+            >
+              {copied['notes'] ? '已复制' : '复制'}
+            </button>
           </div>
         </div>
       </div>
