@@ -6,8 +6,10 @@ import { supabase } from '@/lib/supabase'
 
 export default function Notes() {
   const [notes, setNotes] = useState<any[]>([])
+  const [filteredNotes, setFilteredNotes] = useState<any[]>([])
   const [user, setUser] = useState<any>(null)
   const [loading, setLoading] = useState(true)
+  const [searchQuery, setSearchQuery] = useState('')
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
@@ -16,9 +18,22 @@ export default function Notes() {
     })
   }, [])
 
+  useEffect(() => {
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase()
+      setFilteredNotes(notes.filter(n => 
+        n.title.toLowerCase().includes(query) || 
+        n.tags?.some((t: string) => t.toLowerCase().includes(query))
+      ))
+    } else {
+      setFilteredNotes(notes)
+    }
+  }, [searchQuery, notes])
+
   async function fetchNotes() {
     const { data } = await supabase.from('notes').select('*').eq('is_public', true).order('created_at', { ascending: false })
     setNotes(data || [])
+    setFilteredNotes(data || [])
     setLoading(false)
   }
 
@@ -33,22 +48,56 @@ export default function Notes() {
   return (
     <div className='space-y-6'>
       <div className='flex justify-between items-center'>
-        <div><h1 className='text-3xl font-bold'>知识库</h1><p className='text-muted-foreground mt-1'>共 {notes.length} 篇笔记</p></div>
-        {user && <Link href='/admin/notes/new' className='px-4 py-2 bg-black text-white rounded-md'>+ 新建</Link>}
+        <div>
+          <h1 className='text-3xl font-bold'>知识库</h1>
+          <p className='text-muted-foreground mt-1'>共 {filteredNotes.length} 篇笔记</p>
+        </div>
+        {user && <Link href='/admin/notes/new' className='px-4 py-2 bg-black dark:bg-gray-700 text-white dark:text-white rounded-md'>+ 新建</Link>}
       </div>
-      {notes.length > 0 ? (
+
+      {/* 搜索框 */}
+      <div className='relative'>
+        <svg className='absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+          <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z' />
+        </svg>
+        <input
+          type='text'
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder='搜索标题或标签...'
+          className='w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-800 dark:border-gray-700 dark:text-white'
+        />
+      </div>
+
+      {filteredNotes.length > 0 ? (
         <div className='space-y-3'>
-          {notes.map((n) => (
-            <div key={n.id} className='border rounded-lg p-4'>
+          {filteredNotes.map((n) => (
+            <div key={n.id} className='border dark:border-gray-700 rounded-lg p-4 hover:shadow-md transition-shadow'>
               <div className='flex justify-between items-start'>
-                <Link href={`/notes/${n.id}`} className='font-medium hover:underline'>{n.title}</Link>
-                {user && <div className='flex gap-3 text-sm'><Link href={`/admin/notes/${n.id}`} className='text-blue-600 hover:underline'>编辑</Link><button onClick={() => handleDelete(n.id)} className='text-red-600 hover:underline'>删除</button></div>}
+                <Link href={`/notes/${n.id}`} className='font-medium hover:underline dark:text-white'>{n.title}</Link>
+                {user && (
+                  <div className='flex gap-3 text-sm'>
+                    <Link href={`/admin/notes/${n.id}`} className='text-blue-600 hover:underline'>编辑</Link>
+                    <button onClick={() => handleDelete(n.id)} className='text-red-600 hover:underline'>删除</button>
+                  </div>
+                )}
               </div>
-              <div className='flex gap-2 mt-2'>{n.tags?.map((t: string) => <span key={t} className='px-2 py-0.5 bg-gray-100 rounded text-xs'>{t}</span>)}<span className='text-xs text-muted-foreground ml-auto'>{new Date(n.created_at).toLocaleDateString('zh-CN')}</span></div>
+              <div className='flex gap-2 mt-2 flex-wrap'>
+                {n.tags?.map((t: string) => (
+                  <span key={t} className='px-2 py-0.5 bg-gray-100 dark:bg-gray-700 dark:text-gray-300 rounded text-xs'>{t}</span>
+                ))}
+                <span className='text-xs text-muted-foreground ml-auto'>
+                  {new Date(n.created_at).toLocaleDateString('zh-CN')}
+                </span>
+              </div>
             </div>
           ))}
         </div>
-      ) : <div className='text-center py-16 border rounded-lg text-muted-foreground'>暂无公开笔记</div>}
+      ) : (
+        <div className='text-center py-16 border dark:border-gray-700 rounded-lg text-muted-foreground'>
+          {searchQuery ? '没有找到匹配的笔记' : '暂无公开笔记'}
+        </div>
+      )}
     </div>
   )
 }

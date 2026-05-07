@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import './globals.css'
 import Nav from '@/components/Nav'
+import ThemeProvider from '@/components/ThemeProvider'
 
 export const metadata: Metadata = {
   title: {
@@ -35,17 +36,19 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang='zh-CN'>
-      <body className='min-h-screen bg-white text-gray-900'>
-        <Nav />
-        <main className='max-w-4xl mx-auto px-4 py-8'>
-          {children}
-        </main>
-        <footer className='border-t mt-16'>
-          <div className='max-w-4xl mx-auto px-4 py-6 text-center text-sm text-muted-foreground'>
-            © {new Date().getFullYear()} Zane. All rights reserved.
-          </div>
-        </footer>
+    <html lang='zh-CN' suppressHydrationWarning>
+      <body className='min-h-screen bg-white text-gray-900 dark:bg-gray-900 dark:text-gray-100 transition-colors'>
+        <ThemeProvider>
+          <Nav />
+          <main className='max-w-4xl mx-auto px-4 py-8'>
+            {children}
+          </main>
+          <footer className='border-t mt-16 dark:border-gray-800'>
+            <div className='max-w-4xl mx-auto px-4 py-6 text-center text-sm text-muted-foreground'>
+              © {new Date().getFullYear()} Zane. All rights reserved.
+            </div>
+          </footer>
+        </ThemeProvider>
       </body>
     </html>
   )

@@ -42,34 +42,62 @@ export default function NoteDetail() {
     )
   }
 
+  const CodeBlock = ({ children, className, ...props }: any) => {
+    const [copied, setCopied] = useState(false)
+    const code = String(children).replace(/\n$/, '')
+    
+    const handleCopy = async () => {
+      await navigator.clipboard.writeText(code)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    }
+
+    if (!className) {
+      return <code className={className} {...props}>{children}</code>
+    }
+
+    return (
+      <div className='relative group'>
+        <pre className='bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto text-sm'>
+          <code className={className} {...props}>{children}</code>
+        </pre>
+        <button
+          onClick={handleCopy}
+          className='absolute top-2 right-2 px-2 py-1 text-xs bg-gray-700 hover:bg-gray-600 text-gray-200 rounded opacity-0 group-hover:opacity-100 transition-opacity'
+        >
+          {copied ? '已复制!' : '复制'}
+        </button>
+      </div>
+    )
+  }
+
   const components = {
-    h1: (props: any) => <h1 style={styles.h1} {...props} />,
-    h2: (props: any) => <h2 style={styles.h2} {...props} />,
-    h3: (props: any) => <h3 style={styles.h3} {...props} />,
-    h4: (props: any) => <h4 style={styles.h4} {...props} />,
-    p: (props: any) => <p style={styles.p} {...props} />,
+    h1: (props: any) => <h1 style={{ fontSize: '1.875rem', fontWeight: 700, marginBottom: '0.5rem', color: 'var(--text-primary)' }} {...props} />,
+    h2: (props: any) => <h2 style={{ fontSize: '1.5rem', fontWeight: 600, marginTop: '1.5rem', marginBottom: '0.5rem', color: 'var(--text-primary)' }} {...props} />,
+    h3: (props: any) => <h3 style={{ fontSize: '1.25rem', fontWeight: 600, marginTop: '1rem', marginBottom: '0.5rem', color: 'var(--text-primary)' }} {...props} />,
+    h4: (props: any) => <h4 style={{ fontSize: '1.125rem', fontWeight: 600, marginTop: '1rem', marginBottom: '0.5rem', color: 'var(--text-primary)' }} {...props} />,
+    p: (props: any) => <p style={{ marginBottom: '0.75rem', lineHeight: 1.7, color: 'var(--text-secondary)' }} {...props} />,
     a: ({ href, children, ...props }: any) => (
-      <a href={href} style={styles.a} target={href?.startsWith('http') ? '_blank' : undefined} rel="noopener noreferrer" {...props}>{children}</a>
+      <a href={href} style={{ color: '#2563eb' }} target={href?.startsWith('http') ? '_blank' : undefined} rel="noopener noreferrer" {...props}>{children}</a>
     ),
-    ul: (props: any) => <ul style={styles.ul} {...props} />,
-    ol: (props: any) => <ol style={styles.ol} {...props} />,
-    li: (props: any) => <li style={styles.li} {...props} />,
-    blockquote: (props: any) => <blockquote style={styles.blockquote} {...props} />,
+    ul: (props: any) => <ul style={{ marginBottom: '0.75rem', paddingLeft: '1.5rem', listStyle: 'disc', color: 'var(--text-secondary)' }} {...props} />,
+    ol: (props: any) => <ol style={{ marginBottom: '0.75rem', paddingLeft: '1.5rem', listStyle: 'decimal', color: 'var(--text-secondary)' }} {...props} />,
+    li: (props: any) => <li style={{ marginBottom: '0.25rem' }} {...props} />,
+    blockquote: (props: any) => <blockquote style={{ borderLeft: '3px solid #d1d5db', paddingLeft: '1rem', margin: '1rem 0', color: '#6b7280', fontStyle: 'italic' }} {...props} />,
     code: ({ className, children, ...props }: any) => {
-      const isInline = !className
-      if (isInline) return <code style={styles.inlineCode}>{children}</code>
-      return <code style={styles.codeBlock}>{children}</code>
+      if (!className) return <code style={{ backgroundColor: 'var(--code-bg)', padding: '0.125rem 0.375rem', borderRadius: '0.25rem', fontSize: '0.875rem', fontFamily: 'monospace' }}>{children}</code>
+      return <code className={className} {...props}>{children}</code>
     },
-    pre: (props: any) => <pre style={styles.pre} {...props} />,
-    img: (props: any) => <img style={styles.img} {...props} />,
+    pre: (props: any) => <CodeBlock {...props} />,
+    img: (props: any) => <img style={{ maxWidth: '100%', height: 'auto', borderRadius: '0.5rem', margin: '1rem 0' }} {...props} />,
     table: (props: any) => (
       <div style={{ overflowX: 'auto' }}>
-        <table style={styles.table} {...props} />
+        <table style={{ width: '100%', borderCollapse: 'collapse', margin: '1rem 0' }} {...props} />
       </div>
     ),
-    th: (props: any) => <th style={styles.th} {...props} />,
-    td: (props: any) => <td style={styles.td} {...props} />,
-    hr: () => <hr style={styles.hr} />,
+    th: (props: any) => <th style={{ border: '1px solid var(--border)', padding: '0.5rem', textAlign: 'left', backgroundColor: 'var(--th-bg)' }} {...props} />,
+    td: (props: any) => <td style={{ border: '1px solid var(--border)', padding: '0.5rem' }} {...props} />,
+    hr: () => <hr style={{ border: 'none', borderTop: '1px solid var(--border)', margin: '2rem 0' }} />,
   }
 
   return (
@@ -77,52 +105,27 @@ export default function NoteDetail() {
       <div className='flex justify-between items-center mb-6'>
         <Link href='/notes' className='text-sm text-muted-foreground hover:text-foreground'>← 返回</Link>
         {user && (
-          <Link href={`/admin/notes/${note.id}`} className='px-3 py-1 border rounded text-sm hover:bg-gray-100'>
+          <Link href={`/admin/notes/${note.id}`} className='px-3 py-1 border rounded text-sm hover:bg-gray-100 dark:hover:bg-gray-800'>
             编辑
           </Link>
         )}
       </div>
       
-      <h1 style={styles.title}>{note.title}</h1>
+      <h1 style={{ fontSize: '2rem', fontWeight: 700, marginBottom: '1rem' }}>{note.title}</h1>
       <div className='flex gap-2 mb-8 flex-wrap items-center'>
         {note.tags?.map((t: string) => (
-          <span key={t} style={styles.tag}>{t}</span>
+          <span key={t} style={{ padding: '0.25rem 0.5rem', backgroundColor: 'var(--tag-bg)', borderRadius: '0.25rem', fontSize: '0.875rem' }}>{t}</span>
         ))}
-        <span style={styles.date}>
+        <span style={{ fontSize: '0.875rem', color: '#6b7280', marginLeft: 'auto' }}>
           {new Date(note.created_at).toLocaleDateString('zh-CN')}
         </span>
       </div>
       
-      <article style={styles.article}>
+      <article style={{ lineHeight: 1.75 }}>
         <ReactMarkdown remarkPlugins={[remarkGfm]} components={components}>
           {note.content}
         </ReactMarkdown>
       </article>
     </div>
   )
-}
-
-const styles: { [key: string]: React.CSSProperties } = {
-  title: { fontSize: '2rem', fontWeight: 700, marginBottom: '1rem', color: '#111' },
-  tag: { padding: '0.25rem 0.5rem', backgroundColor: '#f3f4f6', borderRadius: '0.25rem', fontSize: '0.875rem' },
-  date: { fontSize: '0.875rem', color: '#6b7280', marginLeft: 'auto' },
-  article: { color: '#374151', lineHeight: 1.75 },
-  h1: { fontSize: '1.875rem', fontWeight: 700, marginTop: '2rem', marginBottom: '1rem', color: '#111' },
-  h2: { fontSize: '1.5rem', fontWeight: 600, marginTop: '1.5rem', marginBottom: '0.75rem', color: '#1f2937' },
-  h3: { fontSize: '1.25rem', fontWeight: 600, marginTop: '1.25rem', marginBottom: '0.5rem', color: '#1f2937' },
-  h4: { fontSize: '1.125rem', fontWeight: 600, marginTop: '1rem', marginBottom: '0.5rem', color: '#1f2937' },
-  p: { marginBottom: '1rem' },
-  a: { color: '#2563eb', textDecoration: 'none' },
-  ul: { marginBottom: '1rem', paddingLeft: '1.5rem', listStyleType: 'disc' },
-  ol: { marginBottom: '1rem', paddingLeft: '1.5rem', listStyleType: 'decimal' },
-  li: { marginBottom: '0.25rem' },
-  blockquote: { borderLeft: '4px solid #e5e7eb', paddingLeft: '1rem', margin: '1rem 0', color: '#6b7280', fontStyle: 'italic' },
-  inlineCode: { backgroundColor: '#f3f4f6', padding: '0.125rem 0.375rem', borderRadius: '0.25rem', fontSize: '0.875rem', fontFamily: 'monospace' },
-  pre: { backgroundColor: '#1f2937', color: '#f3f4f6', padding: '1rem', borderRadius: '0.5rem', overflow: 'auto', margin: '1rem 0' },
-  codeBlock: { fontFamily: 'monospace', fontSize: '0.875rem' },
-  img: { maxWidth: '100%', height: 'auto', borderRadius: '0.5rem', margin: '1rem 0' },
-  table: { width: '100%', borderCollapse: 'collapse', margin: '1rem 0' },
-  th: { border: '1px solid #e5e7eb', padding: '0.5rem', textAlign: 'left', backgroundColor: '#f9fafb' },
-  td: { border: '1px solid #e5e7eb', padding: '0.5rem' },
-  hr: { border: 'none', borderTop: '1px solid #e5e7eb', margin: '2rem 0' },
 }

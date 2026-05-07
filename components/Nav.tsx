@@ -4,16 +4,20 @@ import Link from 'next/link'
 import { useEffect, useState, useRef } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
+import { useTheme } from 'next-themes'
 
 export default function Nav() {
   const router = useRouter()
+  const { theme, setTheme } = useTheme()
   const [user, setUser] = useState<{ email: string } | null>(null)
   const [loading, setLoading] = useState(true)
   const [showMenu, setShowMenu] = useState(false)
   const [showUserMenu, setShowUserMenu] = useState(false)
+  const [mounted, setMounted] = useState(false)
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
+    setMounted(true)
     supabase.auth.getUser().then(({ data }) => {
       setUser(data.user ? { email: data.user.email || '' } : null)
       setLoading(false)
@@ -44,16 +48,35 @@ export default function Nav() {
     router.push('/login')
   }
 
+  const toggleTheme = () => {
+    setTheme(theme === 'dark' ? 'light' : 'dark')
+  }
+
   return (
-    <nav className='border-b bg-white sticky top-0 z-50'>
+    <nav className='border-b bg-white dark:bg-gray-900 sticky top-0 z-50 transition-colors'>
       <div className='max-w-4xl mx-auto px-4 py-3'>
         {/* 桌面端导航 */}
         <div className='hidden md:flex items-center justify-between'>
-          <Link href='/' className='font-bold text-xl'>Zane's Site</Link>
+          <Link href='/' className='font-bold text-xl dark:text-white'>Zane's Site</Link>
           <div className='flex items-center gap-6'>
-            <Link href='/' className='text-sm text-muted-foreground hover:text-foreground transition-colors'>首页</Link>
-            <Link href='/projects' className='text-sm text-muted-foreground hover:text-foreground transition-colors'>项目</Link>
-            <Link href='/notes' className='text-sm text-muted-foreground hover:text-foreground transition-colors'>笔记</Link>
+            <Link href='/' className='text-sm text-muted-foreground hover:text-foreground dark:hover:text-gray-200 transition-colors'>首页</Link>
+            <Link href='/projects' className='text-sm text-muted-foreground hover:text-foreground dark:hover:text-gray-200 transition-colors'>项目</Link>
+            <Link href='/notes' className='text-sm text-muted-foreground hover:text-foreground dark:hover:text-gray-200 transition-colors'>笔记</Link>
+            
+            {/* 深色模式切换 */}
+            {mounted && (
+              <button onClick={toggleTheme} className='p-1.5 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md transition-colors' title='切换主题'>
+                {theme === 'dark' ? (
+                  <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                    <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z' />
+                  </svg>
+                ) : (
+                  <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                    <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z' />
+                  </svg>
+                )}
+              </button>
+            )}
             
             {!loading && (user ? (
               <div 
@@ -61,25 +84,25 @@ export default function Nav() {
                 onMouseEnter={handleUserMenuEnter}
                 onMouseLeave={handleUserMenuLeave}
               >
-                <button className='w-8 h-8 rounded-full bg-black text-white flex items-center justify-center font-bold text-sm hover:opacity-90 transition-opacity'>
+                <button className='w-8 h-8 rounded-full bg-black dark:bg-gray-700 text-white flex items-center justify-center font-bold text-sm hover:opacity-90 transition-opacity'>
                   {user.email.charAt(0).toUpperCase()}
                 </button>
                 
                 {showUserMenu && (
                   <div 
-                    className='absolute right-0 mt-2 w-52 bg-white border rounded-lg shadow-lg py-2 z-50'
+                    className='absolute right-0 mt-2 w-52 bg-white dark:bg-gray-800 border dark:border-gray-700 rounded-lg shadow-lg py-2 z-50'
                     onMouseEnter={handleUserMenuEnter}
                     onMouseLeave={handleUserMenuLeave}
                   >
-                    <div className='px-4 py-2 border-b text-sm'>
-                      <p className='font-medium truncate text-gray-900'>{user.email}</p>
+                    <div className='px-4 py-2 border-b dark:border-gray-700 text-sm'>
+                      <p className='font-medium truncate dark:text-gray-100'>{user.email}</p>
                     </div>
-                    <Link href='/admin' className='block px-4 py-2 text-sm hover:bg-gray-100 text-gray-700'>
+                    <Link href='/admin' className='block px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-gray-200'>
                       管理后台
                     </Link>
                     <button 
                       onClick={handleLogout} 
-                      className='w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100'
+                      className='w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100 dark:hover:bg-gray-700'
                     >
                       退出登录
                     </button>
@@ -87,7 +110,7 @@ export default function Nav() {
                 )}
               </div>
             ) : (
-              <Link href='/login' className='text-sm px-3 py-1 border rounded-md hover:bg-gray-100 transition-colors'>
+              <Link href='/login' className='text-sm px-3 py-1 border rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 dark:border-gray-700 dark:text-gray-200 transition-colors'>
                 登录
               </Link>
             ))}
@@ -96,48 +119,61 @@ export default function Nav() {
 
         {/* 移动端导航 */}
         <div className='flex md:hidden items-center justify-between'>
-          <Link href='/' className='font-bold text-lg'>Zane's Site</Link>
-          <button 
-            onClick={() => setShowMenu(!showMenu)} 
-            className='p-2 hover:bg-gray-100 rounded-md transition-colors'
-          >
-            <svg className='w-6 h-6' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-              {showMenu ? (
-                <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M6 18L18 6M6 6l12 12' />
-              ) : (
-                <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M4 6h16M4 12h16M4 18h16' />
-              )}
-            </svg>
-          </button>
+          <Link href='/' className='font-bold text-lg dark:text-white'>Zane's Site</Link>
+          <div className='flex items-center gap-2'>
+            {mounted && (
+              <button onClick={toggleTheme} className='p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md transition-colors'>
+                {theme === 'dark' ? (
+                  <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                    <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z' />
+                  </svg>
+                ) : (
+                  <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                    <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z' />
+                  </svg>
+                )}
+              </button>
+            )}
+            <button 
+              onClick={() => setShowMenu(!showMenu)} 
+              className='p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md transition-colors'
+            >
+              <svg className='w-6 h-6 dark:text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                {showMenu ? (
+                  <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M6 18L18 6M6 6l12 12' />
+                ) : (
+                  <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M4 6h16M4 12h16M4 18h16' />
+                )}
+              </svg>
+            </button>
+          </div>
         </div>
 
         {/* 移动端菜单 */}
         {showMenu && (
-          <div className='md:hidden py-4 space-y-2 border-t mt-3'>
-            <Link href='/' className='block px-2 py-2 text-sm hover:bg-gray-50 rounded-md' onClick={() => setShowMenu(false)}>
+          <div className='md:hidden py-4 space-y-2 border-t mt-3 dark:border-gray-800'>
+            <Link href='/' className='block px-2 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-800 rounded-md dark:text-gray-200' onClick={() => setShowMenu(false)}>
               首页
             </Link>
-            <Link href='/projects' className='block px-2 py-2 text-sm hover:bg-gray-50 rounded-md' onClick={() => setShowMenu(false)}>
+            <Link href='/projects' className='block px-2 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-800 rounded-md dark:text-gray-200' onClick={() => setShowMenu(false)}>
               项目
             </Link>
-            <Link href='/notes' className='block px-2 py-2 text-sm hover:bg-gray-50 rounded-md' onClick={() => setShowMenu(false)}>
+            <Link href='/notes' className='block px-2 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-800 rounded-md dark:text-gray-200' onClick={() => setShowMenu(false)}>
               笔记
             </Link>
             {!loading && (
               user ? (
-                <>
-                  <div className='border-t my-2 pt-2'>
-                    <p className='px-2 py-2 text-xs text-muted-foreground truncate'>{user.email}</p>
-                    <Link href='/admin' className='block px-2 py-2 text-sm hover:bg-gray-50 rounded-md' onClick={() => setShowMenu(false)}>
-                      管理后台
-                    </Link>
-                    <button onClick={handleLogout} className='w-full text-left px-2 py-2 text-sm text-red-600 hover:bg-gray-50 rounded-md'>
-                      退出登录
-                    </button>
-                  </div>
-                </>
+                <div className='border-t my-2 pt-2 dark:border-gray-800'>
+                  <p className='px-2 py-2 text-xs text-muted-foreground truncate dark:text-gray-400'>{user.email}</p>
+                  <Link href='/admin' className='block px-2 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-800 rounded-md dark:text-gray-200' onClick={() => setShowMenu(false)}>
+                    管理后台
+                  </Link>
+                  <button onClick={handleLogout} className='w-full text-left px-2 py-2 text-sm text-red-600 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-md'>
+                    退出登录
+                  </button>
+                </div>
               ) : (
-                <Link href='/login' className='block px-2 py-2 text-sm border rounded-md text-center hover:bg-gray-50' onClick={() => setShowMenu(false)}>
+                <Link href='/login' className='block px-2 py-2 text-sm border rounded-md text-center hover:bg-gray-50 dark:hover:bg-gray-800 dark:border-gray-700 dark:text-gray-200' onClick={() => setShowMenu(false)}>
                   登录
                 </Link>
               )
