@@ -1,5 +1,4 @@
 import { createClient } from '@/lib/supabase-server'
-import { logout } from '@/app/auth/actions'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 
@@ -22,11 +21,9 @@ export default async function Admin() {
             欢迎回来，{user?.email}
           </p>
         </div>
-        <form action={logout}>
-          <button type='submit' className='px-4 py-2 border rounded-md hover:bg-muted'>
-            退出登录
-          </button>
-        </form>
+        <a href='/api/auth/logout' className='px-4 py-2 border rounded-md hover:bg-muted'>
+          退出登录
+        </a>
       </div>
 
       <div className='border rounded-lg p-6'>

@@ -1,8 +1,8 @@
 'use client'
 
-import { login } from '@/app/auth/actions'
-import { useState } from 'react'
+import { supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
+import { useState } from 'react'
 
 export default function Login() {
   const router = useRouter()
@@ -15,19 +15,18 @@ export default function Login() {
     e.preventDefault()
     setLoading(true)
     setError('')
-    
-    const formData = new FormData()
-    formData.append('email', email)
-    formData.append('password', password)
-    
-    const result = await login(formData)
-    
-    if (result?.error) {
-      setError(result.error)
+
+    const { error: authError } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    })
+
+    if (authError) {
+      setError(authError.message)
       setLoading(false)
     } else {
-      // 登录成功，跳转
       router.push('/admin')
+      router.refresh()
     }
   }
 
