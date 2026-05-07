@@ -58,3 +58,21 @@ input:focus, textarea:focus {
   ring: 2px;
   ring-color: #3b82f6;
 }
+
+/* 代码语法高亮 */
+.hljs { background: #1f2937; color: #f3f4f6; }
+.hljs-keyword, .hljs-selector-tag, .hljs-built_in { color: #c678dd; }
+.hljs-string, .hljs-attr { color: #98c379; }
+.hljs-number, .hljs-literal { color: #d19a66; }
+.hljs-comment { color: #7f848e; font-style: italic; }
+.hljs-function, .hljs-title { color: #61afef; }
+.hljs-variable, .hljs-params { color: #e06c75; }
+.hljs-type, .hljs-class { color: #e5c07b; }
+.hljs-meta { color: #61afef; }
+.hljs-tag { color: #e06c75; }
+.hljs-name { color: #e06c75; }
+.hljs-attribute { color: #d19a66; }
+.hljs-symbol, .hljs-bullet { color: #d19a66; }
+.hljs-section { color: #61afef; }
+.hljs-emphasis { font-style: italic; }
+.hljs-strong { font-weight: bold; }

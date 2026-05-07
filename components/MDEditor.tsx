@@ -1,8 +1,9 @@
 'use client'
 
-import { useState, useRef, useCallback, useEffect } from 'react'
+import { useState, useRef, useCallback } from 'react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
+import rehypeHighlight from 'rehype-highlight'
 
 interface MDEditorProps {
   initialTitle?: string
@@ -35,6 +36,8 @@ export default function MDEditor({
     if (!textarea) return
 
     const { selectionStart, selectionEnd } = textarea
+    const beforeCursor = content.substring(0, selectionStart)
+    const afterCursor = content.substring(selectionEnd)
     const lineStart = content.lastIndexOf('\n', selectionStart - 1) + 1
     const currentLine = content.substring(lineStart, selectionStart)
 
@@ -43,8 +46,7 @@ export default function MDEditor({
       e.preventDefault()
       const selectedText = content.substring(selectionStart, selectionEnd)
       const newText = `**${selectedText || '粗体文本'}**`
-      const newContent = content.substring(0, selectionStart) + newText + content.substring(selectionEnd)
-      setContent(newContent)
+      setContent(beforeCursor + newText + afterCursor)
       return
     }
 
@@ -53,8 +55,7 @@ export default function MDEditor({
       e.preventDefault()
       const selectedText = content.substring(selectionStart, selectionEnd)
       const newText = `*${selectedText || '斜体文本'}*`
-      const newContent = content.substring(0, selectionStart) + newText + content.substring(selectionEnd)
-      setContent(newContent)
+      setContent(beforeCursor + newText + afterCursor)
       return
     }
 
@@ -63,16 +64,14 @@ export default function MDEditor({
       e.preventDefault()
       const selectedText = content.substring(selectionStart, selectionEnd)
       const newText = `[${selectedText || '链接文本'}](url)`
-      const newContent = content.substring(0, selectionStart) + newText + content.substring(selectionEnd)
-      setContent(newContent)
+      setContent(beforeCursor + newText + afterCursor)
       return
     }
 
     // Tab 缩进
     if (e.key === 'Tab') {
       e.preventDefault()
-      e.preventDefault()
-      const newContent = content.substring(0, selectionStart) + '  ' + content.substring(selectionEnd)
+      const newContent = beforeCursor + '  ' + afterCursor
       setContent(newContent)
       setTimeout(() => {
         textarea.selectionStart = textarea.selectionEnd = selectionStart + 2
@@ -80,57 +79,56 @@ export default function MDEditor({
       return
     }
 
-    // Enter - 智能列表续行
+    // Enter - 智能处理
     if (e.key === 'Enter') {
+      // 无序列表续行
       const unorderedMatch = currentLine.match(/^(\s*)([-*+])\s/)
-      const orderedMatch = currentLine.match(/^(\s*)(\d+)\.\s/)
-
       if (unorderedMatch) {
         e.preventDefault()
         const indent = unorderedMatch[1]
         const marker = unorderedMatch[2]
-        // 如果当前行只有列表标记，内容为空，则取消列表
         const lineContent = currentLine.substring(unorderedMatch[0].length)
+        
         if (!lineContent.trim()) {
-          const newContent = content.substring(0, lineStart) + '\n' + content.substring(selectionStart)
-          setContent(newContent)
-          setTimeout(() => {
-            textarea.selectionStart = textarea.selectionEnd = lineStart + 1
-          }, 0)
+          setContent(beforeCursor.slice(0, lineStart) + '\n' + afterCursor)
+          setTimeout(() => { textarea.selectionStart = textarea.selectionEnd = lineStart + 1 }, 0)
         } else {
-          const newContent = content.substring(0, selectionStart) + '\n' + indent + marker + ' ' + content.substring(selectionStart)
+          const newContent = beforeCursor + '\n' + indent + marker + ' ' + afterCursor
           setContent(newContent)
-          setTimeout(() => {
-            textarea.selectionStart = textarea.selectionEnd = selectionStart + indent.length + marker.length + 2
-          }, 0)
+          setTimeout(() => { textarea.selectionStart = textarea.selectionEnd = selectionStart + indent.length + marker.length + 2 }, 0)
         }
         return
       }
 
+      // 有序列表续行
+      const orderedMatch = currentLine.match(/^(\s*)(\d+)\.\s/)
       if (orderedMatch) {
         e.preventDefault()
         const indent = orderedMatch[1]
         const num = parseInt(orderedMatch[2]) + 1
-        // 如果当前行只有列表标记，内容为空，则取消列表
         const lineContent = currentLine.substring(orderedMatch[0].length)
+        
         if (!lineContent.trim()) {
-          const newContent = content.substring(0, lineStart) + '\n' + content.substring(selectionStart)
-          setContent(newContent)
-          setTimeout(() => {
-            textarea.selectionStart = textarea.selectionEnd = lineStart + 1
-          }, 0)
+          setContent(beforeCursor.slice(0, lineStart) + '\n' + afterCursor)
+          setTimeout(() => { textarea.selectionStart = textarea.selectionEnd = lineStart + 1 }, 0)
         } else {
-          const newContent = content.substring(0, selectionStart) + '\n' + indent + num + '. ' + content.substring(selectionStart)
+          const newContent = beforeCursor + '\n' + indent + num + '. ' + afterCursor
           setContent(newContent)
-          setTimeout(() => {
-            textarea.selectionStart = textarea.selectionEnd = selectionStart + indent.length + num.toString().length + 3
-          }, 0)
+          setTimeout(() => { textarea.selectionStart = textarea.selectionEnd = selectionStart + indent.length + num.toString().length + 3 }, 0)
         }
         return
       }
 
-      // 普通回车 - 正常换行，不保存
-      return
+      // 代码块内换行
+      const codeBlockStart = beforeCursor.lastIndexOf('```')
+      const lastNewline = beforeCursor.lastIndexOf('\n')
+      if (codeBlockStart > lastNewline && codeBlockStart !== -1) {
+        e.preventDefault()
+        const newContent = beforeCursor + '\n' + afterCursor
+        setContent(newContent)
+        setTimeout(() => { textarea.selectionStart = textarea.selectionEnd = selectionStart + 1 }, 0)
+        return
+      }
     }
   }, [content])
 
@@ -145,10 +143,6 @@ export default function MDEditor({
     }
   }
 
-  const removeTag = (tag: string) => {
-    setTags(tags.filter(t => t !== tag))
-  }
-
   const handleSubmit = async () => {
     if (!title.trim()) {
       alert('请输入标题')
@@ -157,17 +151,29 @@ export default function MDEditor({
     await onSave({ title, content, tags, is_public: isPublic })
   }
 
-  const components = {
-    h1: (props: any) => <h1 style={{ fontSize: '1.875rem', fontWeight: 700, marginBottom: '0.5rem' }} {...props} />,
-    h2: (props: any) => <h2 style={{ fontSize: '1.5rem', fontWeight: 600, marginTop: '1rem', marginBottom: '0.5rem' }} {...props} />,
-    h3: (props: any) => <h3 style={{ fontSize: '1.25rem', fontWeight: 600, marginTop: '0.75rem', marginBottom: '0.5rem' }} {...props} />,
-    p: (props: any) => <p style={{ marginBottom: '0.5rem', lineHeight: 1.7 }} {...props} />,
-    ul: (props: any) => <ul style={{ marginBottom: '0.5rem', paddingLeft: '1.5rem', listStyle: 'disc' }} {...props} />,
-    ol: (props: any) => <ol style={{ marginBottom: '0.5rem', paddingLeft: '1.5rem', listStyle: 'decimal' }} {...props} />,
-    li: (props: any) => <li style={{ marginBottom: '0.25rem' }} {...props} />,
-    blockquote: (props: any) => <blockquote style={{ borderLeft: '3px solid #d1d5db', paddingLeft: '1rem', margin: '0.5rem 0', color: '#6b7280' }} {...props} />,
-    code: ({ className, children, ...props }: any) => !className ? <code style={{ backgroundColor: 'var(--muted)', padding: '0.125rem 0.375rem', borderRadius: '0.25rem', fontSize: '0.875rem', fontFamily: 'monospace' }}>{children}</code> : <code style={{ fontFamily: 'monospace', fontSize: '0.875rem' }} {...props}>{children}</code>,
-    pre: (props: any) => <pre style={{ backgroundColor: '#1f2937', color: '#f3f4f6', padding: '1rem', borderRadius: '0.5rem', overflow: 'auto', margin: '0.5rem 0' }} {...props} />,
+  const CodeBlock = ({ children, className, ...props }: any) => {
+    const [copied, setCopied] = useState(false)
+    const code = String(children).replace(/\n$/, '')
+    
+    const handleCopy = async () => {
+      await navigator.clipboard.writeText(code)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    }
+
+    return (
+      <div className='relative group'>
+        <pre className='!bg-gray-900 !text-gray-100 p-4 rounded-lg overflow-x-auto text-sm' {...props}>
+          {children}
+        </pre>
+        <button
+          onClick={handleCopy}
+          className='absolute top-2 right-2 px-2 py-1 text-xs bg-gray-700 hover:bg-gray-600 text-gray-200 rounded opacity-0 group-hover:opacity-100 transition-opacity'
+        >
+          {copied ? '已复制!' : '复制'}
+        </button>
+      </div>
+    )
   }
 
   return (
@@ -177,8 +183,8 @@ export default function MDEditor({
         <div className='max-w-7xl mx-auto px-4 py-3 flex items-center justify-between'>
           <span className='text-sm' style={{ color: 'var(--foreground)' }}>Markdown 编辑器</span>
           <div className='flex items-center gap-3'>
-            <span className='text-xs px-2 py-1 rounded' style={{ backgroundColor: 'var(--muted)', color: 'var(--foreground)' }}>
-              Ctrl+B 加粗 | Ctrl+I 斜体 | Ctrl+K 链接
+            <span className='text-xs px-2 py-1 rounded hidden sm:inline' style={{ backgroundColor: 'var(--muted)', color: 'var(--foreground)' }}>
+              Ctrl+B/I/K | ```代码块 | Tab缩进
             </span>
             <button 
               type='button' 
@@ -218,15 +224,14 @@ export default function MDEditor({
               value={content}
               onChange={(e) => setContent(e.target.value)}
               onKeyDown={handleKeyDown}
-              className='w-full min-h-[500px] border-0 focus:ring-0 p-0 resize-none text-base leading-relaxed bg-transparent'
+              className='w-full min-h-[500px] border-0 focus:ring-0 p-0 resize-none text-base leading-relaxed bg-transparent font-mono'
               style={{ color: 'var(--foreground)' }}
               placeholder='开始写作...
 
-支持 Markdown 语法：
-- **加粗** Ctrl+B
-- *斜体* Ctrl+I
-- [链接](url) Ctrl+K
-- 列表自动续行'
+快捷键：
+- Ctrl+B 加粗 | Ctrl+I 斜体 | Ctrl+K 链接
+- Tab 缩进
+- ``` 代码块（自动识别语法高亮）'
             />
           </div>
         </div>
@@ -237,7 +242,19 @@ export default function MDEditor({
             <div className='max-w-3xl mx-auto'>
               <h1 style={{ fontSize: '2rem', fontWeight: 700, marginBottom: '1rem' }}>{title || '无标题'}</h1>
               <div className='prose-content'>
-                <ReactMarkdown remarkPlugins={[remarkGfm]} components={components}>
+                <ReactMarkdown 
+                  remarkPlugins={[remarkGfm]} 
+                  rehypePlugins={[rehypeHighlight]}
+                  components={{
+                    pre: CodeBlock,
+                    code: ({ className, children, ...props }: any) => {
+                      if (className) {
+                        return <code className={className} {...props}>{children}</code>
+                      }
+                      return <code style={{ backgroundColor: 'var(--muted)', padding: '0.125rem 0.375rem', borderRadius: '0.25rem', fontSize: '0.875rem', fontFamily: 'monospace' }}>{children}</code>
+                    }
+                  }}
+                >
                   {content || '*暂无内容*'}
                 </ReactMarkdown>
               </div>
@@ -254,7 +271,7 @@ export default function MDEditor({
             {tags.map(tag => (
               <span key={tag} className='inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs' style={{ backgroundColor: 'var(--muted)', color: 'var(--foreground)' }}>
                 {tag}
-                <button type='button' onClick={() => removeTag(tag)} className='hover:opacity-70'>×</button>
+                <button type='button' onClick={() => setTags(tags.filter(t => t !== tag))} className='hover:opacity-70'>×</button>
               </span>
             ))}
             <input
@@ -269,12 +286,7 @@ export default function MDEditor({
           </div>
           <div className='w-px h-4' style={{ backgroundColor: 'var(--border)' }} />
           <label className='flex items-center gap-2 text-xs cursor-pointer' style={{ color: 'var(--foreground)' }}>
-            <input
-              type='checkbox'
-              checked={isPublic}
-              onChange={(e) => setIsPublic(e.target.checked)}
-              className='rounded'
-            />
+            <input type='checkbox' checked={isPublic} onChange={(e) => setIsPublic(e.target.checked)} className='rounded' />
             公开
           </label>
         </div>
