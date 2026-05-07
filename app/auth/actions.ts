@@ -1,16 +1,16 @@
 'use server'
 
+import { createClient } from '@/lib/supabase-server'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase-server'
 
 export async function login(formData: FormData) {
-  const supabase = await createClient()
-
+  const supabase = createClient()
+  
   const email = formData.get('email') as string
   const password = formData.get('password') as string
 
-  const { data, error } = await supabase.auth.signInWithPassword({
+  const { error } = await supabase.auth.signInWithPassword({
     email,
     password,
   })
@@ -19,16 +19,12 @@ export async function login(formData: FormData) {
     return { error: error.message }
   }
 
-  if (data.user) {
-    revalidatePath('/', 'layout')
-    return { success: true }
-  }
-
-  return { error: '登录失败' }
+  revalidatePath('/', 'layout')
+  return { success: true }
 }
 
 export async function logout() {
-  const supabase = await createClient()
+  const supabase = createClient()
   await supabase.auth.signOut()
   revalidatePath('/', 'layout')
   redirect('/')
