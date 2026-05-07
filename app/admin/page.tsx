@@ -7,16 +7,6 @@ export default function Admin() {
   return (
     <AuthCheck>
       <div className='space-y-8'>
-        <div className='flex justify-between items-center'>
-          <div>
-            <h1 className='text-3xl font-bold'>管理后台</h1>
-            <p className='text-muted-foreground mt-1'>欢迎回来</p>
-          </div>
-          <a href='/api/auth/logout' className='px-4 py-2 border rounded-md hover:bg-muted'>
-            退出登录
-          </a>
-        </div>
-
         <div className='border rounded-lg p-6'>
           <h2 className='text-xl font-semibold mb-3'>🔗 分享链接</h2>
           <div className='grid md:grid-cols-2 gap-4'>
