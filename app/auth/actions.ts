@@ -15,7 +15,7 @@ export async function login(formData: FormData) {
   const { error } = await supabase.auth.signInWithPassword(data)
 
   if (error) {
-    redirect('/login?message=Could not authenticate user')
+    return { error: error.message || '登录失败，请检查邮箱和密码' }
   }
 
   revalidatePath('/', 'layout')
