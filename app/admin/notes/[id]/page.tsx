@@ -3,36 +3,33 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
+import ReactMarkdown from 'react-markdown'
 
-export default function EditProject({ params }: { params: { id: string } }) {
+export default function EditNote({ params }: { params: { id: string } }) {
   const router = useRouter()
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   
   const [formData, setFormData] = useState({
-    name: '',
-    description: '',
-    git_url: '',
-    live_url: '',
-    tech_stack: '',
+    title: '',
+    content: '',
+    tags: '',
     is_public: true,
   })
 
   useEffect(() => {
-    async function loadProject() {
+    async function loadNote() {
       const { data } = await supabase
-        .from('projects')
+        .from('notes')
         .select('*')
         .eq('id', params.id)
         .single()
 
       if (data) {
         setFormData({
-          name: data.name,
-          description: data.description || '',
-          git_url: data.git_url || '',
-          live_url: data.live_url || '',
-          tech_stack: data.tech_stack?.join(', ') || '',
+          title: data.title,
+          content: data.content || '',
+          tags: data.tags?.join(', ') || '',
           is_public: data.is_public,
         })
       }
@@ -40,33 +37,31 @@ export default function EditProject({ params }: { params: { id: string } }) {
       setLoading(false)
     }
 
-    loadProject()
+    loadNote()
   }, [params.id])
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setSaving(true)
 
-    const techStackArray = formData.tech_stack
+    const tagsArray = formData.tags
       .split(',')
       .map(t => t.trim())
       .filter(t => t)
 
     const { error } = await supabase
-      .from('projects')
+      .from('notes')
       .update({
-        name: formData.name,
-        description: formData.description,
-        git_url: formData.git_url || null,
-        live_url: formData.live_url || null,
-        tech_stack: techStackArray,
+        title: formData.title,
+        content: formData.content,
+        tags: tagsArray,
         is_public: formData.is_public,
         updated_at: new Date().toISOString(),
       })
       .eq('id', params.id)
 
     if (!error) {
-      router.push('/admin/projects')
+      router.push('/admin/notes')
       router.refresh()
     } else {
       alert('保存失败：' + error.message)
@@ -76,15 +71,15 @@ export default function EditProject({ params }: { params: { id: string } }) {
   }
 
   async function handleDelete() {
-    if (!confirm('确定要删除这个项目吗？')) return
+    if (!confirm('确定要删除这篇笔记吗？')) return
     
     const { error } = await supabase
-      .from('projects')
+      .from('notes')
       .delete()
       .eq('id', params.id)
 
     if (!error) {
-      router.push('/admin/projects')
+      router.push('/admin/notes')
       router.refresh()
     }
   }
@@ -94,18 +89,18 @@ export default function EditProject({ params }: { params: { id: string } }) {
   }
 
   return (
-    <div className='max-w-2xl mx-auto'>
-      <h1 className='text-2xl font-bold mb-6'>编辑项目</h1>
+    <div className='max-w-4xl mx-auto'>
+      <h1 className='text-2xl font-bold mb-6'>编辑笔记</h1>
       
       <form onSubmit={handleSubmit} className='space-y-6'>
         <div>
           <label className='block text-sm font-medium mb-2'>
-            项目名称 *
+            笔记标题 *
           </label>
           <input
             type='text'
-            value={formData.name}
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+            value={formData.title}
+            onChange={(e) => setFormData({ ...formData, title: e.target.value })}
             className='w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary'
             required
           />
@@ -113,50 +108,35 @@ export default function EditProject({ params }: { params: { id: string } }) {
 
         <div>
           <label className='block text-sm font-medium mb-2'>
-            项目描述
+            标签（逗号分隔）
           </label>
-          <textarea
-            value={formData.description}
-            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-            className='w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary h-32'
+          <input
+            type='text'
+            value={formData.tags}
+            onChange={(e) => setFormData({ ...formData, tags: e.target.value })}
+            className='w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary'
           />
         </div>
 
         <div className='grid grid-cols-2 gap-4'>
           <div>
             <label className='block text-sm font-medium mb-2'>
-              Git 地址
+              内容（Markdown）
             </label>
-            <input
-              type='url'
-              value={formData.git_url}
-              onChange={(e) => setFormData({ ...formData, git_url: e.target.value })}
-              className='w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary'
+            <textarea
+              value={formData.content}
+              onChange={(e) => setFormData({ ...formData, content: e.target.value })}
+              className='w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary h-96 font-mono text-sm'
             />
           </div>
           <div>
             <label className='block text-sm font-medium mb-2'>
-              在线演示地址
+              预览
             </label>
-            <input
-              type='url'
-              value={formData.live_url}
-              onChange={(e) => setFormData({ ...formData, live_url: e.target.value })}
-              className='w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary'
-            />
+            <div className='w-full px-4 py-4 border rounded-md h-96 overflow-auto prose prose-sm max-w-none'>
+              <ReactMarkdown>{formData.content}</ReactMarkdown>
+            </div>
           </div>
-        </div>
-
-        <div>
-          <label className='block text-sm font-medium mb-2'>
-            技术栈（逗号分隔）
-          </label>
-          <input
-            type='text'
-            value={formData.tech_stack}
-            onChange={(e) => setFormData({ ...formData, tech_stack: e.target.value })}
-            className='w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary'
-          />
         </div>
 
         <div className='flex items-center gap-2'>
@@ -168,7 +148,7 @@ export default function EditProject({ params }: { params: { id: string } }) {
             className='w-4 h-4'
           />
           <label htmlFor='is_public' className='text-sm'>
-            公开项目（访客可见）
+            公开笔记（访客可见）
           </label>
         </div>
 

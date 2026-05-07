@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase-server'
 import { logout } from '@/app/auth/actions'
+import { redirect } from 'next/navigation'
 
 export default async function Admin() {
   const supabase = createClient()
@@ -7,6 +8,10 @@ export default async function Admin() {
   const {
     data: { user },
   } = await supabase.auth.getUser()
+
+  if (!user) {
+    redirect('/login')
+  }
 
   return (
     <div className='space-y-8'>

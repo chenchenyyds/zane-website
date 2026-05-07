@@ -13,23 +13,24 @@ export default async function Nav() {
         </Link>
         <div className='flex items-center gap-6'>
           <Link href='/' className='text-sm text-muted-foreground hover:text-foreground transition-colors'>
-          首页
-        </Link>
-        <Link href='/projects' className='text-sm text-muted-foreground hover:text-foreground transition-colors'>
-          项目
-        </Link>
-        <Link href='/notes' className='text-sm text-muted-foreground hover:text-foreground transition-colors'>
-          笔记
-        </Link>
-        {user ? (
-          <Link href='/admin' className='text-sm text-primary hover:underline font-medium'>
-            管理后台
+            首页
           </Link>
-        ) : (
-          <Link href='/login' className='text-sm text-muted-foreground hover:text-foreground transition-colors'>
-            登录
+          <Link href='/projects' className='text-sm text-muted-foreground hover:text-foreground transition-colors'>
+            项目
           </Link>
-        )}
+          <Link href='/notes' className='text-sm text-muted-foreground hover:text-foreground transition-colors'>
+            笔记
+          </Link>
+          {user ? (
+            <Link href='/admin' className='text-sm text-primary hover:underline font-medium'>
+              管理后台
+            </Link>
+          ) : (
+            <Link href='/login' className='text-sm text-muted-foreground hover:text-foreground transition-colors'>
+              登录
+            </Link>
+          )}
+        </div>
       </div>
     </nav>
   )

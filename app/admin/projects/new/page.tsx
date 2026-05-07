@@ -2,11 +2,10 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase'
+import { supabase } from '@/lib/supabase'
 
 export default function NewProject() {
   const router = useRouter()
-  const supabase = createClient()
   const [loading, setLoading] = useState(false)
   
   const [formData, setFormData] = useState({
