@@ -92,7 +92,7 @@ export default function Home() {
         ) : (
           <div className='card p-6 text-center'>
             <p className='text-gray-500'>还没有项目</p>
-            {user && <Link href='/admin/projects/new' className='text-blue-500 hover:text-blue-600 mt-2 inline-block text-sm'>去创建 →</Link>}
+            {user && <Link href='/projects/new' className='text-blue-500 hover:text-blue-600 mt-2 inline-block text-sm'>去创建 →</Link>}
           </div>
         )}
       </section>
@@ -128,7 +128,7 @@ export default function Home() {
         ) : (
           <div className='card p-6 text-center'>
             <p className='text-gray-500'>还没有笔记</p>
-            {user && <Link href='/admin/notes/new' className='text-blue-500 hover:text-blue-600 mt-2 inline-block text-sm'>去创建 →</Link>}
+            {user && <Link href='/notes/new' className='text-blue-500 hover:text-blue-600 mt-2 inline-block text-sm'>去创建 →</Link>}
           </div>
         )}
       </section>

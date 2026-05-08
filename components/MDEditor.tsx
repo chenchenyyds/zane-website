@@ -180,28 +180,22 @@ export default function MDEditor({
     <div className='min-h-screen flex flex-col' style={{ backgroundColor: 'var(--background)', color: 'var(--foreground)' }}>
       {/* 顶部导航 */}
       <div className='border-b flex-shrink-0' style={{ backgroundColor: 'var(--background)', borderColor: 'var(--border)' }}>
-        <div className='max-w-7xl mx-auto px-4 py-3 flex items-center justify-between'>
-          <span className='text-sm' style={{ color: 'var(--foreground)' }}>Markdown 编辑器</span>
-          <div className='flex items-center gap-3'>
-            <span className='text-xs px-2 py-1 rounded hidden sm:inline' style={{ backgroundColor: 'var(--muted)', color: 'var(--foreground)' }}>
-              Ctrl+B/I/K | ```代码块 | Tab缩进
-            </span>
-            <button 
-              type='button' 
-              onClick={() => setShowPreview(!showPreview)} 
-              className='px-3 py-1.5 text-sm border rounded-md hover:opacity-80'
-              style={{ borderColor: 'var(--border)', color: 'var(--foreground)' }}
-            >
-              {showPreview ? '隐藏预览' : '显示预览'}
-            </button>
-            <button 
-              onClick={handleSubmit} 
-              disabled={saving}
-              className='px-4 py-1.5 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700 disabled:opacity-50'
-            >
-              {saving ? '保存中...' : '保存'}
-            </button>
-          </div>
+        <div className='max-w-7xl mx-auto px-4 py-3 flex items-center justify-end gap-3'>
+          <button 
+            type='button' 
+            onClick={() => setShowPreview(!showPreview)} 
+            className='px-3 py-1.5 text-sm border rounded-md hover:opacity-80'
+            style={{ borderColor: 'var(--border)', color: 'var(--foreground)' }}
+          >
+            {showPreview ? '隐藏预览' : '显示预览'}
+          </button>
+          <button 
+            onClick={handleSubmit} 
+            disabled={saving}
+            className='px-4 py-1.5 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700 disabled:opacity-50'
+          >
+            {saving ? '保存中...' : '保存'}
+          </button>
         </div>
       </div>
 
@@ -226,12 +220,7 @@ export default function MDEditor({
               onKeyDown={handleKeyDown}
               className='w-full min-h-[500px] border-0 focus:ring-0 p-0 resize-none text-base leading-relaxed bg-transparent font-mono'
               style={{ color: 'var(--foreground)' }}
-              placeholder='开始写作...
-
-快捷键：
-- Ctrl+B 加粗 | Ctrl+I 斜体 | Ctrl+K 链接
-- Tab 缩进
-- ``` 代码块（自动识别语法高亮）'
+              placeholder='开始写作...'
             />
           </div>
         </div>

@@ -4,6 +4,16 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 
+// 卡片渐变背景
+const cardGradients = [
+  'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+  'linear-gradient(135deg, #11998e 0%, #38ef7d 100%)',
+  'linear-gradient(135deg, #fc4a1a 0%, #f7b733 100%)',
+  'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+  'linear-gradient(135deg, #fa709a 0%, #fee140 100%)',
+  'linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%)',
+]
+
 export default function Notes() {
   const [notes, setNotes] = useState<any[]>([])
   const [filteredNotes, setFilteredNotes] = useState<any[]>([])
@@ -43,21 +53,29 @@ export default function Notes() {
     fetchNotes()
   }
 
-  if (loading) return <div className='text-center py-20'>加载中...</div>
+  // 截取内容前100字
+  const truncateContent = (content: string, maxLength: number = 100) => {
+    if (!content) return '暂无内容'
+    const plainText = content.replace(/[#*`\[\]()]/g, '').replace(/\n/g, ' ').trim()
+    if (plainText.length <= maxLength) return plainText
+    return plainText.substring(0, maxLength) + '...'
+  }
+
+  if (loading) return <div className='text-center py-20' style={{ color: 'var(--foreground)' }}>加载中...</div>
 
   return (
     <div className='space-y-6'>
       <div className='flex justify-between items-center'>
         <div>
-          <h1 className='text-3xl font-bold'>知识库</h1>
-          <p className='text-muted-foreground mt-1'>共 {filteredNotes.length} 篇笔记</p>
+          <h1 className='text-3xl font-bold' style={{ color: 'var(--foreground)' }}>知识库</h1>
+          <p className='mt-1' style={{ color: 'var(--muted-foreground)' }}>共 {filteredNotes.length} 篇笔记</p>
         </div>
-        {user && <Link href='/admin/notes/new' className='px-4 py-2 bg-black dark:bg-gray-700 text-white dark:text-white rounded-md'>+ 新建</Link>}
+        {user && <Link href='/notes/new' className='px-4 py-2 rounded-md text-white' style={{ backgroundColor: '#3b82f6' }}>+ 新建</Link>}
       </div>
 
-      {/* 搜索框 */}
+      {/* 搜索框 - 修复padding */}
       <div className='relative'>
-        <svg className='absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+        <svg className='absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5' style={{ color: 'var(--muted-foreground)' }} fill='none' stroke='currentColor' viewBox='0 0 24 24'>
           <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z' />
         </svg>
         <input
@@ -65,36 +83,48 @@ export default function Notes() {
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder='搜索标题或标签...'
-          className='w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-800 dark:border-gray-700 dark:text-white'
+          className='w-full pl-12 pr-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent'
+          style={{ backgroundColor: 'var(--background)', borderColor: 'var(--border)', color: 'var(--foreground)' }}
         />
       </div>
 
       {filteredNotes.length > 0 ? (
-        <div className='space-y-3'>
-          {filteredNotes.map((n) => (
-            <div key={n.id} className='border dark:border-gray-700 rounded-lg p-4 hover:shadow-md transition-shadow'>
-              <div className='flex justify-between items-start'>
-                <Link href={`/notes/${n.id}`} className='font-medium hover:underline dark:text-white'>{n.title}</Link>
+        <div className='grid md:grid-cols-2 lg:grid-cols-3 gap-5'>
+          {filteredNotes.map((n, index) => (
+            <Link 
+              key={n.id} 
+              href={`/notes/${n.id}`}
+              className='rounded-xl p-5 transition-all duration-300 hover:scale-105 hover:shadow-xl group block'
+              style={{ 
+                background: cardGradients[index % cardGradients.length],
+                boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+              }}
+            >
+              <div className='flex justify-between items-start mb-2'>
+                <h3 className='font-bold text-lg text-white group-hover:text-opacity-90 line-clamp-1'>{n.title}</h3>
+              </div>
+              <p className='text-sm mb-4 text-white/90 line-clamp-3'>{truncateContent(n.content)}</p>
+              <div className='flex flex-wrap gap-2 mb-3'>
+                {n.tags?.slice(0, 3).map((t: string) => (
+                  <span key={t} className='px-2 py-0.5 bg-white/20 backdrop-blur-sm rounded text-xs text-white'>{t}</span>
+                ))}
+              </div>
+              <div className='flex justify-between items-center'>
+                <span className='text-xs text-white/80'>
+                  {new Date(n.created_at).toLocaleDateString('zh-CN')}
+                </span>
                 {user && (
-                  <div className='flex gap-3 text-sm'>
-                    <Link href={`/admin/notes/${n.id}`} className='text-blue-600 hover:underline'>编辑</Link>
-                    <button onClick={() => handleDelete(n.id)} className='text-red-600 hover:underline'>删除</button>
+                  <div className='flex gap-3 text-xs'>
+                    <Link href={`/notes/${n.id}`} className='text-white/80 hover:text-white hover:underline' onClick={e => e.stopPropagation()}>编辑</Link>
+                    <button onClick={(e) => { e.preventDefault(); handleDelete(n.id); }} className='text-white/80 hover:text-white hover:underline'>删除</button>
                   </div>
                 )}
               </div>
-              <div className='flex gap-2 mt-2 flex-wrap'>
-                {n.tags?.map((t: string) => (
-                  <span key={t} className='px-2 py-0.5 bg-gray-100 dark:bg-gray-700 dark:text-gray-300 rounded text-xs'>{t}</span>
-                ))}
-                <span className='text-xs text-muted-foreground ml-auto'>
-                  {new Date(n.created_at).toLocaleDateString('zh-CN')}
-                </span>
-              </div>
-            </div>
+            </Link>
           ))}
         </div>
       ) : (
-        <div className='text-center py-16 border dark:border-gray-700 rounded-lg text-muted-foreground'>
+        <div className='text-center py-16 border rounded-lg' style={{ borderColor: 'var(--border)', color: 'var(--muted-foreground)' }}>
           {searchQuery ? '没有找到匹配的笔记' : '暂无公开笔记'}
         </div>
       )}

@@ -44,13 +44,13 @@ export default function NewProject() {
     if (error) {
       alert('创建失败：' + error.message)
     } else {
-      router.push('/admin/projects')
+      router.push('/projects')
     }
   }
 
   return (
     <div className='max-w-2xl mx-auto' style={{ backgroundColor: 'var(--background)', color: 'var(--foreground)' }}>
-      <Link href='/admin/projects' className='text-sm hover:underline mb-4 inline-block' style={{ color: 'var(--foreground)' }}>
+      <Link href='/projects' className='text-sm hover:underline mb-4 inline-block' style={{ color: 'var(--foreground)' }}>
         ← 返回
       </Link>
       <h1 className='text-2xl font-bold mb-6'>新建项目</h1>
@@ -126,14 +126,14 @@ export default function NewProject() {
             onChange={(e) => setForm({ ...form, is_public: e.target.checked })}
             className='rounded'
           />
-          <label htmlFor='is_public' className='text-sm'>公开分享</label>
+          <label htmlFor='is_public' className='text-sm' style={{ color: 'var(--foreground)' }}>公开分享</label>
         </div>
 
         <div className='flex gap-3 pt-4'>
           <button type='submit' disabled={loading} className='px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50'>
             {loading ? '创建中...' : '创建'}
           </button>
-          <Link href='/admin/projects' className='px-6 py-2 border rounded-md hover:opacity-80' style={{ borderColor: 'var(--border)', color: 'var(--foreground)' }}>
+          <Link href='/projects' className='px-6 py-2 border rounded-md hover:opacity-80' style={{ borderColor: 'var(--border)', color: 'var(--foreground)' }}>
             取消
           </Link>
         </div>

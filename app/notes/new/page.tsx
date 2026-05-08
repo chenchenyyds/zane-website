@@ -29,7 +29,7 @@ export default function NewNote() {
     if (error) {
       alert('创建失败：' + error.message)
     } else {
-      router.push('/admin/notes')
+      router.push('/notes')
     }
   }
 
@@ -37,7 +37,7 @@ export default function NewNote() {
     <div className='min-h-screen' style={{ backgroundColor: 'var(--background)' }}>
       <div className='sticky top-0 z-10 border-b' style={{ backgroundColor: 'var(--background)', borderColor: 'var(--border)' }}>
         <div className='max-w-7xl mx-auto px-4 py-3 flex items-center gap-4'>
-          <Link href='/admin/notes' className='text-sm hover:underline' style={{ color: 'var(--foreground)' }}>
+          <Link href='/notes' className='text-sm hover:underline' style={{ color: 'var(--foreground)' }}>
             ← 返回
           </Link>
           <span className='text-sm' style={{ color: '#6b7280' }}>| 新建笔记</span>
