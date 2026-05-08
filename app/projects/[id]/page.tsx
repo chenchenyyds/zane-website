@@ -72,14 +72,14 @@ export default function EditProject() {
           <label className='block text-sm mb-1' style={{ color: 'var(--foreground)' }}>技术栈</label>
           <input type='text' value={form.tech_stack} onChange={(e) => setForm({ ...form, tech_stack: e.target.value })} className='w-full px-3 py-2 border rounded-md' style={{ backgroundColor: 'var(--background)', borderColor: 'var(--border)', color: 'var(--foreground)' }} placeholder='逗号分隔' />
         </div>
-        <div className='flex items-center gap-2'>
-          <input type='checkbox' id='is_public' checked={form.is_public} onChange={(e) => setForm({ ...form, is_public: e.target.checked })} className='w-4 h-4' />
-          <label htmlFor='is_public' className='text-sm' style={{ color: 'var(--foreground)' }}>公开</label>
-        </div>
-        <div className='flex gap-3 pt-4'>
+        <div className='flex items-center gap-3 pt-4'>
           <button type='submit' disabled={saving} className='px-6 py-2 rounded-md disabled:opacity-50' style={{ backgroundColor: '#3b82f6', color: '#fff' }}>{saving ? '保存中...' : '保存'}</button>
           <button type='button' onClick={handleDelete} className='px-6 py-2 rounded-md' style={{ backgroundColor: '#ef4444', color: '#fff' }}>删除</button>
           <Link href='/projects' className='px-6 py-2 border rounded-md' style={{ borderColor: 'var(--border)', color: 'var(--foreground)' }}>取消</Link>
+          <label className='flex items-center gap-2 ml-auto cursor-pointer text-sm' style={{ color: 'var(--foreground)' }}>
+            <input type='checkbox' checked={form.is_public} onChange={(e) => setForm({ ...form, is_public: e.target.checked })} className='rounded' />
+            公开
+          </label>
         </div>
       </form>
     </div>

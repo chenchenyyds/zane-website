@@ -64,30 +64,34 @@ export default function Home() {
           </Link>
         </div>
         {recentProjects.length > 0 ? (
-          <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4'>
-            {recentProjects.map((p) => (
-              <div key={p.id} className='card p-4'>
-                <h3 className='font-semibold text-base md:text-lg mb-2'>{p.name}</h3>
-                <p className='text-sm text-gray-500 dark:text-gray-400 mb-3 line-clamp-2'>{p.description || '暂无描述'}</p>
-                <div className='flex flex-wrap gap-1.5 mb-3'>
-                  {p.tech_stack?.slice(0, 3).map((t: string) => (
-                    <span key={t} className='tag'>{t}</span>
-                  ))}
+          <div className='grid md:grid-cols-2 lg:grid-cols-3 gap-5'>
+            {recentProjects.map((p, index) => {
+              const gradients = [
+                'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+                'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+              ]
+              const gradient = gradients[index % gradients.length]
+              return (
+                <div key={p.id} className='rounded-xl p-5 transition-all duration-300 hover:scale-105 hover:shadow-xl' style={{ background: gradient }}>
+                  <h3 className='font-bold text-white text-lg mb-2'>{p.name}</h3>
+                  <p className='text-white/80 text-sm mb-3 line-clamp-2'>{p.description || '暂无描述'}</p>
+                  <div className='flex flex-wrap gap-1.5 mb-3'>
+                    {p.tech_stack?.slice(0, 3).map((t: string) => (
+                      <span key={t} className='px-2 py-0.5 bg-white/20 rounded text-white text-xs'>{t}</span>
+                    ))}
+                  </div>
+                  <div className='flex gap-3 text-sm'>
+                    {p.git_url && (
+                      <a href={p.git_url} target='_blank' rel='noopener noreferrer' className='text-white hover:underline'>代码 →</a>
+                    )}
+                    {p.live_url && (
+                      <a href={p.live_url} target='_blank' rel='noopener noreferrer' className='text-white hover:underline'>演示 →</a>
+                    )}
+                  </div>
                 </div>
-                <div className='flex gap-3 text-sm'>
-                  {p.git_url && (
-                    <a href={p.git_url} target='_blank' rel='noopener noreferrer' className='text-blue-500 hover:text-blue-600'>
-                      代码 →
-                    </a>
-                  )}
-                  {p.live_url && (
-                    <a href={p.live_url} target='_blank' rel='noopener noreferrer' className='text-blue-500 hover:text-blue-600'>
-                      演示 →
-                    </a>
-                  )}
-                </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
         ) : (
           <div className='card p-6 text-center'>
@@ -106,22 +110,21 @@ export default function Home() {
           </Link>
         </div>
         {recentNotes.length > 0 ? (
-          <div className='space-y-3'>
+          <div className='grid md:grid-cols-2 lg:grid-cols-3 gap-5'>
             {recentNotes.map((n) => (
-              <Link key={n.id} href={`/notes/${n.id}`} className='card block p-4 group'>
-                <div className='flex justify-between items-start'>
-                  <div className='min-w-0 flex-1'>
-                    <h3 className='font-medium group-hover:text-blue-500 transition-colors text-sm md:text-base'>{n.title}</h3>
-                    <div className='flex gap-1.5 mt-2 flex-wrap'>
-                      {n.tags?.slice(0, 3).map((t: string) => (
-                        <span key={t} className='tag'>{t}</span>
-                      ))}
-                    </div>
-                  </div>
-                  <span className='text-xs text-gray-400 whitespace-nowrap ml-3'>
-                    {new Date(n.created_at).toLocaleDateString('zh-CN')}
-                  </span>
+              <Link key={n.id} href={`/notes/${n.id}`} className='block p-5 rounded-xl border transition-all duration-300 hover:scale-105 hover:shadow-lg' style={{ backgroundColor: 'var(--card)', borderColor: 'var(--border)' }}>
+                <h3 className='font-semibold mb-2 line-clamp-1' style={{ color: 'var(--foreground)' }}>{n.title}</h3>
+                <p className='text-sm mb-3 line-clamp-2' style={{ color: 'var(--foreground)', opacity: 0.7 }}>
+                  {n.content?.substring(0, 80) || '暂无内容'}...
+                </p>
+                <div className='flex flex-wrap gap-1 mb-2'>
+                  {n.tags?.slice(0, 3).map((t: string) => (
+                    <span key={t} className='px-2 py-0.5 rounded text-xs' style={{ backgroundColor: 'var(--muted)', color: 'var(--foreground)' }}>{t}</span>
+                  ))}
                 </div>
+                <span className='text-xs' style={{ color: 'var(--foreground)', opacity: 0.5 }}>
+                  {new Date(n.created_at).toLocaleDateString('zh-CN')}
+                </span>
               </Link>
             ))}
           </div>

@@ -118,24 +118,17 @@ export default function NewProject() {
           </div>
         </div>
 
-        <div className='flex items-center gap-2'>
-          <input
-            type='checkbox'
-            id='is_public'
-            checked={form.is_public}
-            onChange={(e) => setForm({ ...form, is_public: e.target.checked })}
-            className='rounded'
-          />
-          <label htmlFor='is_public' className='text-sm' style={{ color: 'var(--foreground)' }}>公开分享</label>
-        </div>
-
-        <div className='flex gap-3 pt-4'>
-          <button type='submit' disabled={loading} className='px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50'>
+        <div className='flex items-center gap-3 pt-4'>
+          <button type='submit' disabled={loading} className='px-6 py-2 rounded-md disabled:opacity-50' style={{ backgroundColor: '#3b82f6', color: '#fff' }}>
             {loading ? '创建中...' : '创建'}
           </button>
-          <Link href='/projects' className='px-6 py-2 border rounded-md hover:opacity-80' style={{ borderColor: 'var(--border)', color: 'var(--foreground)' }}>
+          <Link href='/projects' className='px-6 py-2 border rounded-md' style={{ borderColor: 'var(--border)', color: 'var(--foreground)' }}>
             取消
           </Link>
+          <label className='flex items-center gap-2 ml-auto cursor-pointer text-sm' style={{ color: 'var(--foreground)' }}>
+            <input type='checkbox' checked={form.is_public} onChange={(e) => setForm({ ...form, is_public: e.target.checked })} className='rounded' />
+            公开
+          </label>
         </div>
       </form>
     </div>
