@@ -64,19 +64,21 @@ export default function Admin() {
         <h2 className='text-lg font-semibold mb-3'>🔗 分享链接</h2>
         <div className='space-y-2 text-sm'>
           <div className='flex gap-2'>
-            <code className='bg-gray-100 px-3 py-1 rounded flex-1'>{siteUrl}/projects</code>
-            <button 
-              onClick={() => handleCopy('projects', `${siteUrl}/projects`)} 
-              className={`px-3 py-1 border rounded transition-colors ${copied['projects'] ? 'bg-green-100 text-green-700 border-green-300' : 'hover:bg-gray-100'}`}
+            <code className='px-3 py-1 rounded flex-1' style={{ backgroundColor: 'var(--muted)', color: 'var(--foreground)' }}>{siteUrl}/projects</code>
+            <button
+              onClick={() => handleCopy('projects', `${siteUrl}/projects`)}
+              className={`px-3 py-1 border rounded transition-colors ${copied['projects'] ? 'bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 border-green-300 dark:border-green-700' : 'hover:bg-gray-100 dark:hover:bg-gray-700'}`}
+              style={{ backgroundColor: copied['projects'] ? undefined : 'var(--card)', borderColor: 'var(--border)', color: 'var(--foreground)' }}
             >
               {copied['projects'] ? '已复制' : '复制'}
             </button>
           </div>
           <div className='flex gap-2'>
-            <code className='bg-gray-100 px-3 py-1 rounded flex-1'>{siteUrl}/notes</code>
-            <button 
-              onClick={() => handleCopy('notes', `${siteUrl}/notes`)} 
-              className={`px-3 py-1 border rounded transition-colors ${copied['notes'] ? 'bg-green-100 text-green-700 border-green-300' : 'hover:bg-gray-100'}`}
+            <code className='px-3 py-1 rounded flex-1' style={{ backgroundColor: 'var(--muted)', color: 'var(--foreground)' }}>{siteUrl}/notes</code>
+            <button
+              onClick={() => handleCopy('notes', `${siteUrl}/notes`)}
+              className={`px-3 py-1 border rounded transition-colors ${copied['notes'] ? 'bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 border-green-300 dark:border-green-700' : 'hover:bg-gray-100 dark:hover:bg-gray-700'}`}
+              style={{ backgroundColor: copied['notes'] ? undefined : 'var(--card)', borderColor: 'var(--border)', color: 'var(--foreground)' }}
             >
               {copied['notes'] ? '已复制' : '复制'}
             </button>
